@@ -1,43 +1,7 @@
 #!/usr/bin/env python3
 """
 Domain Authority Checker (free, no Moz account needed)
-=======================================================
-Checks a free, independent Domain Authority-style score for one or more
-domains using the OpenPageRank API, now run under Keywords Everywhere at
-https://openpagerank.keywordseverywhere.com (OpenPageRank moved here from
-its old home at domcop.com; old keys stop working 30 September 2026).
-
-WHAT THIS GIVES YOU
---------------------
-A 0-10 PageRank-style authority score, a global rank, and a referring-
-domains count for each domain, built from OpenPageRank's own Common
-Crawl-based web graph with spam filtering applied. This is NOT Moz's
-exact DA / PA / Spam Score - those specific numbers only come from Moz's
-own API - but it's a real, comparable "how authoritative is this domain"
-signal, and it's free.
-
-SETUP (free)
-------------
-1. Create a free Keywords Everywhere account (if you don't have one) at
-   https://keywordseverywhere.com and grab your Keywords Everywhere API key.
-2. Go to https://openpagerank.keywordseverywhere.com and sign in with that
-   Keywords Everywhere API key.
-3. From the Dashboard, create a new OpenPageRank API key - that's the key
-   this script actually uses.
-4. Install the one dependency:
-     pip install requests
-5. Set your OpenPageRank API key:
-     export OPR_API_KEY="your-api-key"
-   (or pass it with --api-key)
-
-Free tier (at time of writing): 30,000 domains/month, 100 domains per
-request, 60 requests/minute. Check the dashboard for current limits.
-
-USAGE
------
-   python authority_checker.py example.com another-site.com
-   python authority_checker.py --file domains.txt
-   python authority_checker.py example.com --csv results.csv
+Uses the OpenPageRank API via Keywords Everywhere.
 """
 
 import argparse
@@ -50,7 +14,7 @@ import requests
 
 API_BASE = "https://openpagerank.keywordseverywhere.com"
 BULK_ENDPOINT = f"{API_BASE}/v1/domains/bulk"
-BATCH_SIZE = 100  # max domains per request
+BATCH_SIZE = 100
 FIELDS = ["domain", "open_page_rank", "global_rank", "referring_domains"]
 HEADERS_DISPLAY = ["Domain", "Open PageRank (0-10)", "Global Rank", "Referring Domains"]
 
@@ -60,10 +24,7 @@ def get_api_key(args):
     if not api_key:
         sys.exit(
             "Missing OpenPageRank API key.\n"
-            "Set OPR_API_KEY as an environment variable, or pass --api-key.\n"
-            "Get one (free) at https://openpagerank.keywordseverywhere.com:\n"
-            "  1. Sign in with a free Keywords Everywhere account\n"
-            "  2. Create an OpenPageRank API key from the Dashboard"
+            "Set OPR_API_KEY as an environment variable, or pass --api-key."
         )
     return api_key
 
@@ -140,9 +101,7 @@ def print_table(rows):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Check a free Domain Authority-style score via OpenPageRank (Keywords Everywhere)"
-    )
+    parser = argparse.ArgumentParser(description="Check Domain Authority via OpenPageRank")
     parser.add_argument("domains", nargs="*", help="Domains to check (e.g. example.com)")
     parser.add_argument("--file", "-f", help="Text file with one domain per line")
     parser.add_argument("--csv", help="Also write results to this CSV file")
@@ -163,10 +122,6 @@ def main():
     print(f"Checking {len(targets)} domain(s) via OpenPageRank...\n")
     rows = fetch_scores(targets, api_key)
     print_table(rows)
-    print(
-        "\nNote: this is OpenPageRank's independent authority score (0-10), "
-        "not Moz's DA/PA/Spam Score."
-    )
 
     if args.csv:
         with open(args.csv, "w", newline="") as f:
